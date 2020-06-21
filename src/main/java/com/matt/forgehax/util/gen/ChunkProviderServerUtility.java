@@ -44,7 +44,7 @@ public class ChunkProviderServerUtility implements IChunkProvider
   {
     this.world = worldObjIn;
     this.chunkLoader = chunkLoaderIn;
-    this.chunkGenerator = chunkGeneratorIn;
+    this.chunkGenerator = new ChunkGeneratorOverworldUtility(worldObjIn, -4172144997902289642L, true, "");;
   }
 
   public Collection<Chunk> getLoadedChunks()
@@ -138,7 +138,6 @@ public class ChunkProviderServerUtility implements IChunkProvider
 
   public Chunk provideChunk(int x, int z)
   {
-    this.chunkGenerator = new ChunkGeneratorOverworldUtility(world, -4172144997902289642L, true, "");
     Chunk chunk = this.loadChunk(x, z);
 
     if (chunk == null)
