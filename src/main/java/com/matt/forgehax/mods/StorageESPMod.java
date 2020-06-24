@@ -68,7 +68,7 @@ public class StorageESPMod extends ToggleMod {
     
     for (TileEntity tileEntity : getWorld().loadedTileEntityList) {
       BlockPos pos = tileEntity.getPos();
-      
+
       int color = getTileEntityColor(tileEntity);
       if (color != -1) {
         GeometryTessellator.drawCuboid(event.getBuffer(), pos, GeometryMasks.Line.ALL, color);
