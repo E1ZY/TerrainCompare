@@ -3,41 +3,22 @@ package com.matt.forgehax.mods;
 import com.matt.forgehax.events.LocalPlayerUpdateEvent;
 import com.matt.forgehax.events.RenderEvent;
 import com.matt.forgehax.util.color.Colors;
-import com.matt.forgehax.util.gen.ChunkProviderServerUtility;
 import com.matt.forgehax.util.gen.TerrainCompareUtils;
 import com.matt.forgehax.util.mod.Category;
 import com.matt.forgehax.util.mod.ToggleMod;
 import com.matt.forgehax.util.mod.loader.RegisterMod;
 import com.matt.forgehax.util.tesselation.GeometryMasks;
 import com.matt.forgehax.util.tesselation.GeometryTessellator;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.entity.item.EntityMinecartChest;
-import net.minecraft.item.ItemShulkerBox;
-import net.minecraft.tileentity.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.event.world.ChunkDataEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.GL11;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-
-import static com.matt.forgehax.Helper.getMinecraft;
-import static com.matt.forgehax.Helper.getWorld;
-import static net.minecraftforge.event.world.ChunkEvent.*;
 
 @RegisterMod
 public class TerrainCompare extends ToggleMod {
@@ -46,6 +27,7 @@ public class TerrainCompare extends ToggleMod {
   private final ArrayList<BlockPos> posArray;
   private int x;
   private int z;
+
   public TerrainCompare() {
     super(Category.RENDER, "TerrainCompare", false, "Shows how default terrain was changed");
     utils = new TerrainCompareUtils();
@@ -62,17 +44,10 @@ public class TerrainCompare extends ToggleMod {
     for (int j = 0; j < 256; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
-          BlockPos pos = new BlockPos(x * 16 + i, j,  z * 16 + k);
-          int color = -1;
-          // System.out.println(DimensionManager.getWorld(0).getBlockState(pos).getBlock().getLocalizedName() + " " + utils.worldServer.getBlockState(pos).getBlock().getLocalizedName());
+          final BlockPos pos = new BlockPos(x * 16 + i, j, z * 16 + k);
 
-          if (Minecraft.getMinecraft().world.getBlockState(pos).getBlock().getLocalizedName() != utils.worldServer.getBlockState(pos).getBlock().getLocalizedName()){
-            color = Colors.ORANGE.toBuffer();
-          }
-
-          if (color != -1) {
+          if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.worldServer.getBlockState(pos).getBlock())) {
             posArray.add(pos);
-
           }
 
         }
@@ -107,19 +82,19 @@ public class TerrainCompare extends ToggleMod {
     for (int j = 0; j < 90; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
-          if(utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j,  z * 16 + k)).getBlock().getLocalizedName() != Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()) {
+          if (utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName() != Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()) {
             try {
-              writer.write( i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos( x * 16 + i, j,  z * 16 + k)).getBlock().getLocalizedName()
-                + " " + Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()
+              writer.write(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()
+                  + " " + Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()
 
-              + '\n');
+                  + '\n');
             } catch (IOException e) {
               e.printStackTrace();
             }
           }
-          }
         }
       }
+    }
     try {
       writer.close();
     } catch (IOException e) {
@@ -128,7 +103,7 @@ public class TerrainCompare extends ToggleMod {
     for (int j = 66; j < 66; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
-            System.out.println(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName());
+          System.out.println(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName());
         }
       }
     }
