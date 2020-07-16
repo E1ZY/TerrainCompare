@@ -54,21 +54,6 @@ public class TerrainCompare extends ToggleMod {
 
   }
 
-  @Override
-  protected void onEnabled() {
-    prepareTerrain(x, z);
-  }
-
-  public void prepareTerrain(int x, int z){
-    for (int l1 = -48; l1 <= 48; l1 += 16)
-    {
-      for (int i2 = -48; i2 <= 48; i2 += 16)
-      {
-        utils.worldServer.getChunkProvider().provideChunk( x + l1 >> 4, z + i2 >> 4);
-      }
-    }
-  }
-
   @SubscribeEvent
   public void onTick(final LocalPlayerUpdateEvent event) {
     x = MC.player.getPosition().getX() >> 4;
@@ -96,7 +81,7 @@ public class TerrainCompare extends ToggleMod {
   }
 
   @SubscribeEvent
-  public void onRender(RenderEvent event) {
+  public void onRender(final RenderEvent event) {
     event.getBuffer().begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
     for (final BlockPos pos : posArray) {
@@ -104,8 +89,6 @@ public class TerrainCompare extends ToggleMod {
     }
     event.getTessellator().draw();
   }
-
-
 
   // logs the differences in a file for debugging
   @Override
