@@ -1,5 +1,6 @@
 package com.matt.forgehax.mods;
 
+import com.matt.forgehax.events.LocalPlayerUpdateEvent;
 import com.matt.forgehax.events.RenderEvent;
 import com.matt.forgehax.util.color.Colors;
 import com.matt.forgehax.util.gen.ChunkProviderServerUtility;
@@ -23,13 +24,20 @@ import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.GL11;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import static com.matt.forgehax.Helper.getMinecraft;
 import static com.matt.forgehax.Helper.getWorld;
+import static net.minecraftforge.event.world.ChunkEvent.*;
 
 @RegisterMod
 public class TerrainCompare extends ToggleMod {
@@ -37,6 +45,7 @@ public class TerrainCompare extends ToggleMod {
   TerrainCompareUtils utils;
   FileWriter writer;
   ChunkProviderServerUtility chunkProviderServerUtility;
+  ArrayList<BlockPos> posArray;
   int x;
   int z;
   public TerrainCompare() {
@@ -45,8 +54,9 @@ public class TerrainCompare extends ToggleMod {
 
   @Override
   protected void onEnabled() {
-     x = MC.player.getPosition().getX();
-     z = MC.player.getPosition().getZ();
+    posArray = new ArrayList<BlockPos>();
+    x = MC.player.getPosition().getX();
+    z = MC.player.getPosition().getZ();
     utils = new TerrainCompareUtils();
     try {
       writer = new FileWriter("D:\\output.txt");
@@ -54,7 +64,10 @@ public class TerrainCompare extends ToggleMod {
       e.printStackTrace();
     }
     chunkProviderServerUtility = utils.worldServer.getChunkProvider();
+    prepareTerrain(x, z);
+  }
 
+  public void prepareTerrain(int x, int z){
     for (int l1 = -48; l1 <= 48; l1 += 16)
     {
       for (int i2 = -48; i2 <= 48; i2 += 16)
@@ -75,9 +88,14 @@ public class TerrainCompare extends ToggleMod {
     }
   }*/
 
+  /*
   @SubscribeEvent
-  public void onRender(RenderEvent event) {
-    event.getBuffer().begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+  public void onChunkLoad(ChunkEvent.Load e){
+      prepareTerrain(e.getChunk().x * 16, e.getChunk().z * 16);
+  }*/
+
+  @SubscribeEvent
+  public void OnTick(LocalPlayerUpdateEvent event) {
     x = MC.player.getPosition().getX() >> 4;
     z = MC.player.getPosition().getZ() >> 4;
     for (int j = 0; j < 256; ++j) {
@@ -92,13 +110,22 @@ public class TerrainCompare extends ToggleMod {
           }
 
           if (color != -1) {
-            GeometryTessellator.drawCuboid(event.getBuffer(), pos, GeometryMasks.Line.ALL, color);
+            posArray.add(pos);
+
           }
 
         }
       }
     }
+  }
 
+  @SubscribeEvent
+  public void onRender(RenderEvent event) {
+    event.getBuffer().begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+
+    for (BlockPos pos : posArray) {
+      GeometryTessellator.drawCuboid(event.getBuffer(), pos, GeometryMasks.Line.ALL, Colors.ORANGE.toBuffer());
+    }
     event.getTessellator().draw();
   }
 
