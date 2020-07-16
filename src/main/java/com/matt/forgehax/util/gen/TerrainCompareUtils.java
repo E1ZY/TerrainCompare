@@ -24,7 +24,11 @@ public class TerrainCompareUtils {
           true,
           false,
           WorldType.DEFAULT);
-      this.worldInfo = Minecraft.getMinecraft().world.getWorldInfo();
+      try {
+        this.worldInfo = Minecraft.getMinecraft().world.getWorldInfo();
+      } catch (NullPointerException e) {
+        this.worldInfo = new WorldInfo(worldSettings, "TerrainCompare");
+      }
       this.worldInfo.populateFromWorldSettings(worldSettings);
 
       this.worldServer = new WorldServerUtility(
