@@ -8,6 +8,7 @@ import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.chunk.storage.AnvilSaveHandler;
 import net.minecraft.world.storage.WorldInfo;
+import scala.collection.parallel.ParIterableLike;
 
 import java.io.File;
 
@@ -32,7 +33,7 @@ public class TerrainCompareUtils {
       this.worldInfo.populateFromWorldSettings(worldSettings);
 
       this.worldServer = new WorldServerUtility(
-          new AnvilSaveHandler(new File("/TerrainCompare" ), "TerrainCompareUtils", false, Minecraft.getMinecraft().getDataFixer()),
+          new AnvilSaveHandler(new File(Minecraft.getMinecraft().mcDataDir + "/forgehax/cache"), "TerrainCompareUtils", false, Minecraft.getMinecraft().getDataFixer()),
           worldInfo,
           0,
           new Profiler());
