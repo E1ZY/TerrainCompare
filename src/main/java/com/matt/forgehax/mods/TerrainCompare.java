@@ -11,6 +11,7 @@ import com.matt.forgehax.util.tesselation.GeometryMasks;
 import com.matt.forgehax.util.tesselation.GeometryTessellator;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -20,11 +21,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static com.matt.forgehax.Helper.getMinecraft;
+
 @RegisterMod
 public class TerrainCompare extends ToggleMod {
 
   private final TerrainCompareUtils utils;
   private final ArrayList<BlockPos> posArray;
+  private double managedPosX;
+  private double managedPosZ;
   private int x;
   private int z;
 
@@ -41,11 +46,39 @@ public class TerrainCompare extends ToggleMod {
     x = MC.player.getPosition().getX() >> 4;
     z = MC.player.getPosition().getZ() >> 4;
     posArray.clear();
+    try {
+      EntityPlayerSP player = getMinecraft().player;
+      int i = (int)player.posX >> 4;
+      int j = (int)player.posZ >> 4;
+      double d0 = managedPosX - player.posX;
+      double d1 = managedPosZ - player.posZ;
+      double d2 = d0 * d0 + d1 * d1;
+
+      if (d2 >= 64.0D)
+      {
+        int k = (int) managedPosX >> 4;
+        int l = (int) managedPosZ >> 4;
+        int i1 = 3;
+        int j1 = i - k;
+        int k1 = j - l;
+
+        if (j1 != 0 || k1 != 0) {
+          for (int l1 = i - i1; l1 <= i + i1; ++l1) {
+            for (int i2 = j - i1; i2 <= j + i1; ++i2) {
+              utils.worldServer.getChunkProvider().provideChunk(l1 - j1, i2 - k1);
+            }
+          }
+        }
+          managedPosX = player.posX;
+          managedPosZ = player.posZ;
+      }
+    } catch (Exception e) {
+
+    }
     for (int j = 0; j < 256; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
           final BlockPos pos = new BlockPos(x * 16 + i, j, z * 16 + k);
-
           if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.worldServer.getBlockState(pos).getBlock())) {
             posArray.add(pos);
           }
