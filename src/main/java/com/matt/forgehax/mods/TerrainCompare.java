@@ -41,6 +41,27 @@ public class TerrainCompare extends ToggleMod {
 
   }
 
+  @Override
+  protected void onEnabled() {
+    x = MC.player.getPosition().getX();
+    z = MC.player.getPosition().getZ();
+    prepareTerrain(x, z);
+  }
+
+  public void prepareTerrain(int x, int z){
+    for (int l1 = -48; l1 <= 48; l1 += 16)
+    {
+      for (int i2 = -48; i2 <= 48; i2 += 16)
+      {
+        try {
+          utils.worldServer.getChunkProvider().provideChunk(x + l1 >> 4, z + i2 >> 4);
+        } catch (Exception e) {
+
+        }
+      }
+    }
+  }
+
   @SubscribeEvent
   public void onTick(final LocalPlayerUpdateEvent event) {
     x = MC.player.getPosition().getX() >> 4;
@@ -48,23 +69,20 @@ public class TerrainCompare extends ToggleMod {
     posArray.clear();
     try {
       EntityPlayerSP player = getMinecraft().player;
-      int i = (int)player.posX >> 4;
-      int j = (int)player.posZ >> 4;
       double d0 = managedPosX - player.posX;
       double d1 = managedPosZ - player.posZ;
       double d2 = d0 * d0 + d1 * d1;
 
-      if (d2 >= 64.0D)
-      {
+      if (d2 >= 64.0D) {
         int k = (int) managedPosX >> 4;
         int l = (int) managedPosZ >> 4;
         int i1 = 3;
-        int j1 = i - k;
-        int k1 = j - l;
+        int j1 = x - k;
+        int k1 = z - l;
 
         if (j1 != 0 || k1 != 0) {
-          for (int l1 = i - i1; l1 <= i + i1; ++l1) {
-            for (int i2 = j - i1; i2 <= j + i1; ++i2) {
+          for (int l1 = x - i1; l1 <= x + i1; ++l1) {
+            for (int i2 = z - i1; i2 <= z + i1; ++i2) {
               utils.worldServer.getChunkProvider().provideChunk(l1 - j1, i2 - k1);
             }
           }
