@@ -10,6 +10,7 @@ import com.matt.forgehax.util.mod.loader.RegisterMod;
 import com.matt.forgehax.util.tesselation.GeometryMasks;
 import com.matt.forgehax.util.tesselation.GeometryTessellator;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.BlockPos;
@@ -113,5 +114,24 @@ public class TerrainCompare extends ToggleMod {
       }
     }
   }
+
+  private enum Difference {
+    NONE, CHANGED, BUILT, DESTROYED; // TODO add types for water and for population blocks...
+
+    // TODO save these things in a collection type
+    // it could either be a 3D array and the type NONE must also be used
+    // or it might be better to use something like a HashMap? -> probably too much?
+    // but array also sounds like too much...
+    // it would stay in that collection now and changes will only happen when there is a blockupdate or something
+
+    // I think the block has to be gotten somehow does it? so it cant be an ArrayList?
+
+
+    public static Difference create(final BlockPos position, final IBlockState supposed, final IBlockState actual) {
+      return NONE;
+    }
+
+  }
+
 }
 
