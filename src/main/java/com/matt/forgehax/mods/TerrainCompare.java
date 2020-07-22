@@ -38,9 +38,14 @@ public class TerrainCompare extends ToggleMod {
 
   @SubscribeEvent
   public void onTick(final LocalPlayerUpdateEvent event) {
+    posArray.clear();
+    if(MC.player.dimension != 0) {
+      return;
+    }
+
     x = MC.player.getPosition().getX() >> 4;
     z = MC.player.getPosition().getZ() >> 4;
-    posArray.clear();
+
     for (int j = 0; j < 256; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
