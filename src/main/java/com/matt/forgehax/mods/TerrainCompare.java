@@ -25,8 +25,8 @@ public class TerrainCompare extends ToggleMod {
 
   private final TerrainCompareUtils utils;
   private final ArrayList<BlockPos> posArray;
-  private int x;
-  private int z;
+  private int playerX;
+  private int playerZ;
 
   public TerrainCompare() {
     super(Category.RENDER, "TerrainCompare", false, "Shows how default terrain was changed");
@@ -43,13 +43,13 @@ public class TerrainCompare extends ToggleMod {
       return;
     }
 
-    x = MC.player.getPosition().getX() >> 4;
-    z = MC.player.getPosition().getZ() >> 4;
+    playerX = MC.player.getPosition().getX() >> 4;
+    playerZ = MC.player.getPosition().getZ() >> 4;
 
-    for (int j = 0; j < 256; ++j) {
-      for (int i = 0; i < 16; ++i) {
-        for (int k = 0; k < 16; ++k) {
-          final BlockPos pos = new BlockPos(x * 16 + i, j, z * 16 + k);
+    for (int y = 0; y < 256; ++y) {
+      for (int x = 0; x < 16; ++x) {
+        for (int z = 0; z < 16; ++z) {
+          final BlockPos pos = new BlockPos(playerX * 16 + x, y, playerZ * 16 + z);
 
           if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.worldServer.getBlockState(pos).getBlock())) {
             posArray.add(pos);
@@ -82,15 +82,15 @@ public class TerrainCompare extends ToggleMod {
     }
 
 
-    x = MC.player.getPosition().getX() >> 4;
-    z = MC.player.getPosition().getZ() >> 4;
+    playerX = MC.player.getPosition().getX() >> 4;
+    playerZ = MC.player.getPosition().getZ() >> 4;
     for (int j = 0; j < 90; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
-          if (utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName() != Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()) {
+          if (utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName() != Minecraft.getMinecraft().world.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()) {
             try {
-              writer.write(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()
-                  + " " + Minecraft.getMinecraft().world.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName()
+              writer.write(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()
+                  + " " + Minecraft.getMinecraft().world.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()
 
                   + '\n');
             } catch (IOException e) {
@@ -108,7 +108,7 @@ public class TerrainCompare extends ToggleMod {
     for (int j = 66; j < 66; ++j) {
       for (int i = 0; i < 16; ++i) {
         for (int k = 0; k < 16; ++k) {
-          System.out.println(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(x * 16 + i, j, z * 16 + k)).getBlock().getLocalizedName());
+          System.out.println(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName());
         }
       }
     }
