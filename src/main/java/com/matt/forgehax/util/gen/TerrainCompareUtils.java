@@ -1,8 +1,10 @@
 package com.matt.forgehax.util.gen;
 
 import com.matt.forgehax.util.gen.WorldServerUtility;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameType;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
@@ -37,6 +39,27 @@ public class TerrainCompareUtils {
           worldInfo,
           0,
           new Profiler());
+    }
+
+    public IBlockState getBlockState(final BlockPos pos) {
+      generateChunkSquare(pos.getX() >> 4, pos.getZ() >> 4);
+      return worldServer.getBlockState(pos);
+    }
+
+  /**
+   *
+   * ensures the chunk in the center gets populated
+   *
+   * @param x in chunk pos of the chunk in the middle
+   * @param z in chunk pos
+   */
+    public void generateChunkSquare(final int x, final int z) {
+      for (int i = -1; i < 2; i++) {
+        for (int j = -1; j < 2; j++) {
+          worldServer.getChunkProvider().provideChunk(x + i, z + j);
+          worldServer.tick(); // TODO is this a good idea? maybe have a setting how many ticks to do before population and then after
+        }
+      }
     }
 
 

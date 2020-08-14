@@ -52,7 +52,7 @@ public class TerrainCompare extends ToggleMod {
         for (int z = 0; z < 16; ++z) {
           final BlockPos pos = new BlockPos(playerX * 16 + x, y, playerZ * 16 + z);
 
-          if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.worldServer.getBlockState(pos).getBlock())) {
+          if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.getBlockState(pos).getBlock())) {
             posArray.add(pos);
           }
 
