@@ -57,7 +57,7 @@ public class TerrainCompareUtils {
       for (int i = -1; i < 2; i++) {
         for (int j = -1; j < 2; j++) {
           worldServer.getChunkProvider().provideChunk(x + i, z + j);
-          worldServer.tick(); // TODO is this a good idea? maybe have a setting how many ticks to do before population and then after
+          //worldServer.tick(); // TODO is this a good idea? maybe have a setting how many ticks to do before population and then after
         }
       }
     }
