@@ -62,7 +62,7 @@ public class ChunkProviderServerUtility implements IChunkProvider
   {
     if (this.world.provider.canDropChunk(chunkIn.x, chunkIn.z))
     {
-      this.droppedChunksSet.add(Long.valueOf(ChunkPos.asLong(chunkIn.x, chunkIn.z)));
+      this.droppedChunksSet.add(ChunkPos.asLong(chunkIn.x, chunkIn.z));
       chunkIn.unloadQueued = true;
     }
   }
@@ -83,6 +83,7 @@ public class ChunkProviderServerUtility implements IChunkProvider
     }
   }
 
+  // TODO sometimes it should return null and sometimes not to somehow make population work
   @Nullable
   public Chunk getLoadedChunk(int x, int z)
   {
@@ -153,7 +154,7 @@ public class ChunkProviderServerUtility implements IChunkProvider
         CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception generating new chunk");
         CrashReportCategory crashreportcategory = crashreport.makeCategory("Chunk to be generated");
         crashreportcategory.addCrashSection("Location", String.format("%d,%d", x, z));
-        crashreportcategory.addCrashSection("Position hash", Long.valueOf(i));
+        crashreportcategory.addCrashSection("Position hash", i);
         crashreportcategory.addCrashSection("Generator", this.chunkGenerator);
         throw new ReportedException(crashreport);
       }
@@ -345,4 +346,5 @@ public class ChunkProviderServerUtility implements IChunkProvider
   {
     return this.id2ChunkMap.containsKey(ChunkPos.asLong(x, z)) || this.chunkLoader.isChunkGeneratedAt(x, z);
   }
+
 }
