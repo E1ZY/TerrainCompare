@@ -2,6 +2,7 @@ package com.matt.forgehax.mods;
 
 import com.matt.forgehax.events.LocalPlayerUpdateEvent;
 import com.matt.forgehax.events.RenderEvent;
+import com.matt.forgehax.util.color.Color;
 import com.matt.forgehax.util.color.Colors;
 import com.matt.forgehax.util.gen.TerrainCompareUtils;
 import com.matt.forgehax.util.mod.Category;
@@ -9,12 +10,16 @@ import com.matt.forgehax.util.mod.ToggleMod;
 import com.matt.forgehax.util.mod.loader.RegisterMod;
 import com.matt.forgehax.util.tesselation.GeometryMasks;
 import com.matt.forgehax.util.tesselation.GeometryTessellator;
+import com.mojang.realmsclient.util.Pair;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.jline.utils.DiffHelper;
 import org.lwjgl.opengl.GL11;
 
 import java.io.FileWriter;
@@ -25,21 +30,25 @@ import java.util.ArrayList;
 public class TerrainCompare extends ToggleMod {
 
   private final TerrainCompareUtils utils;
-  private final ArrayList<BlockPos> posArray;
+  private final ArrayList<ChunkPos> managedChunks; // chunks that are in render distance
+  private final ArrayList<Pair<BlockPos, Difference>> difArray;
+  private int renderDistance;
   private int playerX;
   private int playerZ;
 
   public TerrainCompare() {
     super(Category.RENDER, "TerrainCompare", false, "Shows how default terrain was changed");
     utils = new TerrainCompareUtils();
-
-    posArray = new ArrayList<>();
-
+    managedChunks = new ArrayList<>();
+    difArray = new ArrayList<>();
+    renderDistance = 3; // default is 3
   }
 
   @SubscribeEvent
   public void onTick(final LocalPlayerUpdateEvent event) {
-    posArray.clear();
+    difArray.clear();
+    managedChunks.clear();
+
     if(MC.player.dimension != 0) {
       return;
     }
@@ -47,26 +56,36 @@ public class TerrainCompare extends ToggleMod {
     playerX = MC.player.getPosition().getX() >> 4;
     playerZ = MC.player.getPosition().getZ() >> 4;
 
-    for (int y = 0; y < 256; ++y) {
-      for (int x = 0; x < 16; ++x) {
-        for (int z = 0; z < 16; ++z) {
-          final BlockPos pos = new BlockPos(playerX * 16 + x, y, playerZ * 16 + z);
+    for (int i = -renderDistance; i < renderDistance + 1; ++i) {
+      for (int j = -renderDistance; j < renderDistance + 1; ++j) {
+        managedChunks.add(new ChunkPos(playerX + i, playerZ + j));
+      }
+    }
 
-          if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.getBlockState(pos).getBlock())) {
-            posArray.add(pos);
+    for (final ChunkPos chunkPos : managedChunks) {
+      for (int y = 0; y < 256; ++y) {
+        for (int x = 0; x < 16; ++x) {
+          for (int z = 0; z < 16; ++z) {
+            final BlockPos pos = new BlockPos(chunkPos.x * 16 + x, y, chunkPos.z * 16 + z);
+
+            if (!Block.isEqualTo(MC.world.getBlockState(pos).getBlock(), utils.getBlockState(pos).getBlock())) {
+              difArray.add(Pair.of(
+                  pos, // position
+                  Difference.create(MC.world.getBlockState(pos), utils.getBlockState(pos)))); // difference
+            }
           }
-
         }
       }
     }
+
   }
 
   @SubscribeEvent
   public void onRender(final RenderEvent event) {
     event.getBuffer().begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
-    for (final BlockPos pos : posArray) {
-      GeometryTessellator.drawCuboid(event.getBuffer(), pos, GeometryMasks.Line.ALL, Colors.ORANGE.toBuffer());
+    for (final Pair<BlockPos, Difference> pair : difArray) {
+      GeometryTessellator.drawCuboid(event.getBuffer(), pair.first(), GeometryMasks.Line.ALL, getColor(pair.second()).toBuffer());
     }
     event.getTessellator().draw();
   }
@@ -81,7 +100,6 @@ public class TerrainCompare extends ToggleMod {
       e.printStackTrace();
       return;
     }
-
 
     playerX = MC.player.getPosition().getX() >> 4;
     playerZ = MC.player.getPosition().getZ() >> 4;
@@ -115,8 +133,19 @@ public class TerrainCompare extends ToggleMod {
     }
   }
 
+  private Color getColor(Difference difference) {
+    switch (difference) {
+      case BUILT: return Colors.GREEN;
+      case DESTROYED: return Colors.RED;
+      case CHANGED: return Colors.BLUE;
+      case TICKED: return Colors.YELLOW;
+      case POPULATED: return Colors.PURPLE;
+    }
+    return Colors.BLACK;
+  }
+
   private enum Difference {
-    NONE, CHANGED, BUILT, DESTROYED; // TODO add types for water and for population blocks...
+    NONE, CHANGED, BUILT, DESTROYED, TICKED, POPULATED; // TODO add types for water and for population blocks...
 
     // TODO save these things in a collection type
     // it could either be a 3D array and the type NONE must also be used
@@ -126,8 +155,30 @@ public class TerrainCompare extends ToggleMod {
 
     // I think the block has to be gotten somehow does it? so it cant be an ArrayList?
 
+    public static Difference create(final IBlockState actual, final IBlockState supposed) {
+      if (supposed == Blocks.GRASS.getDefaultState() && actual == Blocks.DIRT.getDefaultState()
+        || supposed == Blocks.DIRT.getDefaultState() && actual == Blocks.GRASS.getDefaultState()
+      ) {
+        return TICKED;
+      }
 
-    public static Difference create(final BlockPos position, final IBlockState supposed, final IBlockState actual) {
+      if (supposed == Blocks.TALLGRASS.getDefaultState() && actual == Blocks.AIR.getDefaultState()
+          || supposed == Blocks.AIR.getDefaultState() && actual == Blocks.TALLGRASS.getDefaultState()) {
+        return POPULATED;
+      }
+
+      if ((supposed == Blocks.AIR.getDefaultState() || supposed == Blocks.WATER.getDefaultState())
+          && (actual != Blocks.AIR.getDefaultState() || actual != Blocks.WATER.getDefaultState())) {
+        return BUILT;
+      }
+      if ((supposed != Blocks.AIR.getDefaultState())
+          && (actual == Blocks.AIR.getDefaultState() || actual == Blocks.WATER.getDefaultState())) {
+        return DESTROYED;
+      }
+      if (supposed != Blocks.AIR.getDefaultState()) {
+        return CHANGED;
+      }
+
       return NONE;
     }
 
