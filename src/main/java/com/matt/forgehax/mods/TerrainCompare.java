@@ -41,6 +41,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.glClear;
+
 @RegisterMod
 public class TerrainCompare extends ToggleMod {
 
@@ -104,9 +107,11 @@ public class TerrainCompare extends ToggleMod {
     GlStateManager.pushMatrix();
     GlStateManager.disableLighting();
     GlStateManager.enableAlpha();
-    GlStateManager.disableDepth();
-    GlStateManager.enableBlend();
-    GlStateManager.color(1,1,1,0.25F);
+    GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+    GlStateManager.enableCull();
+    // GlStateManager.enableDepth();
+    // GlStateManager.depthFunc(-100);
+    glClear(GL_DEPTH_BUFFER_BIT);
     // GlStateManager.alphaFunc(0, 0);
     Tessellator tessellator = Tessellator.getInstance();
     BufferBuilder vertexbuffer = tessellator.getBuffer();
@@ -121,20 +126,25 @@ public class TerrainCompare extends ToggleMod {
     // GlStateManager.translate(position.getX(), position.getY(), position.getZ());
 
     BlockRendererDispatcher blockrendererdispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
+
     for (Pair<BlockPos, Difference> pair : difArray) {
-      // Tessellator.getInstance().getBuffer().setTranslation(-pair.first().getX() + 0.5, -pair.first().getY(), -pair.first().getZ() + 0.5);
-      blockrendererdispatcher.getBlockModelRenderer().renderModel(
-          Minecraft.getMinecraft().world,
-          blockrendererdispatcher.getModelForState(utils.getBlockState(pair.first())),
-          utils.getBlockState(pair.first()),
-          pair.first(),
-          vertexbuffer,
-          false,
-          MathHelper.getPositionRandom(pair.first()));
+      if (utils.getBlockState(pair.first()) != Blocks.AIR.getDefaultState()) {
+        // Tessellator.getInstance().getBuffer().setTranslation(-pair.first().getX() + 0.5, -pair.first().getY(), -pair.first().getZ() + 0.5);
+        blockrendererdispatcher.getBlockModelRenderer().renderModel(
+            Minecraft.getMinecraft().world,
+            blockrendererdispatcher.getModelForState(utils.getBlockState(pair.first())),
+            utils.getBlockState(pair.first()),
+            pair.first(),
+            vertexbuffer,
+            false,
+            MathHelper.getPositionRandom(pair.first()));
+      }
     }
     tessellator.draw();
+
+
     Tessellator.getInstance().getBuffer().setTranslation(0, 0, 0);
-    GlStateManager.disableBlend();
+    
     GlStateManager.enableLighting();
     GlStateManager.popMatrix();
   }
