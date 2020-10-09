@@ -18,27 +18,17 @@ import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.chunk.RenderChunk;
-import net.minecraft.client.renderer.entity.RenderFallingBlock;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.jline.utils.DiffHelper;
 import org.lwjgl.opengl.GL11;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
@@ -159,49 +149,6 @@ public class TerrainCompare extends ToggleMod {
     event.getTessellator().draw();
   }
 
-  // logs the differences in a file for debugging
-  @Override
-  protected void onDisabled() {
-    final FileWriter writer;
-    try {
-      writer = new FileWriter("D:\\output.txt");
-    } catch (IOException e) {
-      e.printStackTrace();
-      return;
-    }
-
-    playerX = MC.player.getPosition().getX() >> 4;
-    playerZ = MC.player.getPosition().getZ() >> 4;
-    for (int j = 0; j < 90; ++j) {
-      for (int i = 0; i < 16; ++i) {
-        for (int k = 0; k < 16; ++k) {
-          if (utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName() != Minecraft.getMinecraft().world.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()) {
-            try {
-              writer.write(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()
-                  + " " + Minecraft.getMinecraft().world.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName()
-
-                  + '\n');
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      }
-    }
-    try {
-      writer.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    for (int j = 66; j < 66; ++j) {
-      for (int i = 0; i < 16; ++i) {
-        for (int k = 0; k < 16; ++k) {
-          System.out.println(i + " " + j + " " + k + " " + utils.worldServer.getBlockState(new BlockPos(playerX * 16 + i, j, playerZ * 16 + k)).getBlock().getLocalizedName());
-        }
-      }
-    }
-  }
-
   private Color getColor(Difference difference) {
     switch (difference) {
       case BUILT: return Colors.GREEN;
@@ -215,14 +162,6 @@ public class TerrainCompare extends ToggleMod {
 
   private enum Difference {
     NONE, CHANGED, BUILT, DESTROYED, TICKED, POPULATED; // TODO add types for water and for population blocks...
-
-    // TODO save these things in a collection type
-    // it could either be a 3D array and the type NONE must also be used
-    // or it might be better to use something like a HashMap? -> probably too much?
-    // but array also sounds like too much...
-    // it would stay in that collection now and changes will only happen when there is a blockupdate or something
-
-    // I think the block has to be gotten somehow does it? so it cant be an ArrayList?
 
     public static Difference create(final IBlockState actual, final IBlockState supposed) {
       if (supposed == Blocks.GRASS.getDefaultState() && actual == Blocks.DIRT.getDefaultState()
